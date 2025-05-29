@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desvendando o Teste de Regressão com EcoAção Snake</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .code-display {
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #1e1e1e; /* Cor de fundo similar ao VS Code Dark */
+            color: #d4d4d4; /* Cor de texto padrão */
+            padding: 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            min-height: 420px; 
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #333333; 
+        }
+        .game-canvas {
+            border: 2px solid #4a5568; 
+            background-color: #2d3748; 
+            outline: none; 
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #718096; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0; 
+        }
+
+        /* Estilos de Syntax Highlighting (VS Code like) */
+        .code-keyword { color: #569cd6; } /* Azul para palavras-chave como class, constructor, this, return */
+        .code-class-name { color: #4ec9b0; } /* Verde azulado para nomes de classes */
+        .code-method-name { color: #dcdcaa; } /* Amarelo para nomes de métodos */
+        .code-comment { color: #6a9955; font-style: italic; } /* Verde para comentários */
+        .code-string { color: #ce9178; } /* Laranja para strings */
+        .code-number { color: #b5cea8; } /* Verde claro para números */
+        .code-operator { color: #d4d4d4; } /* Cor padrão para operadores */
+        .code-property { color: #9cdcfe; } /* Azul claro para propriedades (this.score) */
+
+        /* Destaques de Bug/Fix existentes (podem precisar de ajuste para coexistir) */
+        .highlight-bug { background-color: rgba(245, 101, 101, 0.3); display: inline-block; width:100%; border-left: 3px solid #f56565; padding: 2px 0;}
+        .highlight-comment { color: #808080; font-style: italic; } /* Cinza para comentários de destaque de bug/fix */
+        .highlight-fix { background-color: rgba(72, 187, 120, 0.2); display: inline-block; width:100%; border-left: 3px solid #48bb78; padding: 2px 0;}
+        .highlight-neutral { color: #d4d4d4; } /* Cor padrão para texto neutro dentro de destaques */
+        
+        .action-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .action-button:hover {
+            transform: translateY(-1px);
+        }
+        .action-button:active {
+            transform: translateY(0px);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 text-gray-100 antialiased">
+
+    <nav class="bg-slate-900/80 backdrop-blur-md shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-green-400">EcoAção: Teste de Regressão</a>
+            <div class="space-x-4">
+                <a href="#conceito" class="text-gray-300 hover:text-green-400 transition-colors">Conceito</a>
+                <a href="#simulador" class="text-gray-300 hover:text-green-400 transition-colors">Simulador</a>
+                <a href="#quiz" class="text-gray-300 hover:text-green-400 transition-colors">Quiz</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-12">
+
+        <section id="conceito" class="mb-16 scroll-mt-20">
+            <h2 class="text-4xl font-bold text-center mb-2 text-green-400">O que é Teste de Regressão?</h2>
+            <p class="text-center text-lg text-gray-400 mb-8 max-w-3xl mx-auto">Entenda por que ele é o guardião da estabilidade do seu software!</p>
+            <div class="bg-slate-800 p-8 rounded-xl shadow-2xl">
+                <p class="text-lg mb-4 text-gray-300">
+                    Teste de Regressão é um tipo de teste de software que visa garantir que as modificações recentes no código – como correções de bugs, novas funcionalidades ou alterações de configuração – não introduziram novos defeitos ou reintroduziram defeitos antigos em funcionalidades que já existiam e estavam funcionando corretamente.
+                </p>
+                <p class="text-lg mb-4 text-gray-300">
+                    Em essência, ele verifica se o software <strong class="text-green-400">continua funcionando como esperado</strong> após cada mudança. É como checar se, ao consertar um vazamento na cozinha, você não acabou quebrando o encanamento do banheiro!
+                </p>
+                <div class="mt-6 p-6 border border-green-500 rounded-lg bg-slate-700/50">
+                    <h4 class="text-xl font-semibold text-green-400 mb-2">Objetivo Principal:</h4>
+                    <p class="text-gray-300">Assegurar a <strong class="text-green-300">estabilidade</strong> e a <strong class="text-green-300">integridade</strong> do software ao longo do seu ciclo de desenvolvimento e manutenção, confirmando que as partes não alteradas do sistema permanecem intactas e que as novas alterações não tiveram efeitos colaterais indesejados.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="simulador" class="mb-16 scroll-mt-20">
+            <h2 class="text-4xl font-bold text-center mb-2 text-sky-400">Simulador Interativo: Caça aos Bugs no EcoAção Snake!</h2>
+            <p id="simulationStatusText" class="text-center text-lg text-gray-400 mb-8 max-w-3xl mx-auto">Sua missão: testar o jogo, encontrar os bugs e acompanhar as correções.</p>
+
+            <div class="bg-slate-800 p-8 rounded-xl shadow-2xl">
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-sky-300 mb-1">Código do Jogo (Simplificado)</h3>
+                        <p id="codeStageDescription" class="text-sm text-gray-400 mb-3 h-10 align-middle">O estado atual do código será descrito aqui.</p>
+                        <div id="codeDisplay" class="code-display">
+                            // O código do jogo aparecerá aqui...
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <h3 class="text-2xl font-semibold text-sky-300 mb-3">Jogo da Cobrinha EcoAção</h3>
+                        <canvas id="gameCanvas" width="400" height="400" class="game-canvas rounded-lg shadow-lg" tabindex="0"></canvas>
+                        <p class="mt-3 text-lg">Pontuação: <span id="scoreDisplay" class="font-bold text-amber-400">0</span></p>
+                        
+                        <div id="gameControls" class="w-full mt-6 space-y-3 text-center">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quiz" class="scroll-mt-20">
+             <h2 class="text-4xl font-bold text-center mb-2 text-amber-400">Teste seus Conhecimentos!</h2>
+            <p class="text-center text-lg text-gray-400 mb-8 max-w-3xl mx-auto">Será que você se tornou um mestre do Teste de Regressão?</p>
+            <div class="bg-slate-800 p-8 rounded-xl shadow-2xl space-y-8">
+                <div class="bg-slate-700 p-6 rounded-lg shadow-md">
+                    <h4 class="text-lg font-semibold text-amber-300 mb-1">Pergunta 1 (Fácil):</h4>
+                    <p class="text-gray-200 mb-3">Qual é o principal objetivo do Teste de Regressão?</p>
+                    <div class="space-y-2" id="quiz1_options">
+                        <button data-correct="false" onclick="checkAnswer(this, 'quiz1')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">A) Encontrar o máximo de bugs possíveis em novas funcionalidades.</button>
+                        <button data-correct="true" onclick="checkAnswer(this, 'quiz1')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">B) Garantir que novas alterações no código não quebraram funcionalidades existentes.</button>
+                        <button data-correct="false" onclick="checkAnswer(this, 'quiz1')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">C) Testar a performance do sistema sob carga máxima.</button>
+                        <button data-correct="false" onclick="checkAnswer(this, 'quiz1')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">D) Validar se o software atende aos requisitos do usuário final.</button>
+                    </div>
+                    <p id="quiz1_feedback" class="mt-3 text-sm"></p>
+                </div>
+                <div class="bg-slate-700 p-6 rounded-lg shadow-md">
+                    <h4 class="text-lg font-semibold text-amber-300 mb-1">Pergunta 2 (Média):</h4>
+                    <p class="text-gray-200 mb-3">No jogo EcoAção, uma atualização melhora os gráficos das árvores. Qual das seguintes ações seria um Teste de Regressão PRIMORDIAL?</p>
+                    <div class="space-y-2" id="quiz2_options">
+                        <button data-correct="false" onclick="checkAnswer(this, 'quiz2')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">A) Verificar se as novas árvores estão visualmente mais bonitas.</button>
+                        <button data-correct="true" onclick="checkAnswer(this, 'quiz2')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">B) Testar se o jogador ainda consegue coletar itens de uma árvore (se essa funcionalidade existia antes).</button>
+                        <button data-correct="false" onclick="checkAnswer(this, 'quiz2')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">C) Medir quantos frames por segundo (FPS) o jogo roda com os novos gráficos.</button>
+                        <button data-correct="false" onclick="checkAnswer(this, 'quiz2')" class="block w-full text-left bg-slate-600 hover:bg-slate-500 p-3 rounded-md transition-colors">D) Perguntar aos jogadores se eles gostaram das novas árvores.</button>
+                    </div>
+                    <p id="quiz2_feedback" class="mt-3 text-sm"></p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="bg-slate-900 text-center py-8 mt-16 border-t border-slate-700">
+        <p class="text-gray-400">&copy; 2024 EcoAção Dev Team. Aprendendo sobre Testes de Software.</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const codeDisplayEl = document.getElementById('codeDisplay');
+        const gameControlsEl = document.getElementById('gameControls');
+        const codeStageDescriptionEl = document.getElementById('codeStageDescription');
+        const simulationStatusTextEl = document.getElementById('simulationStatusText');
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        let snake, apple, score, gameSpeed, gameInterval;
+        let gameRunning = false; 
+        let gameAwaitingFirstMove = false; 
+        let currentSimulationStage = 0; 
+        
+        const codeLineMarkers = {
+            scoreBugLine: "SCORE_BUG_LINE", 
+            wallBugMethod: "WALL_BUG_METHOD" 
+        };
+        
+        const codeSnippets = {
+            stage0: `
+<span class="code-comment">// Bem-vindo ao Simulador de Teste de Regressão!</span>
+<span class="code-comment">// Teste o jogo da cobrinha e ajude a encontrar os bugs.</span>
+<span class="code-comment">// Clique em "Iniciar Teste do Jogo" para começar.</span>
+
+<span class="code-keyword">class</span> <span class="code-class-name">SnakeGame</span> {
+    <span class="code-method-name">constructor</span>() {
+        <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span> <span class="code-operator">=</span> [{<span class="code-property">x</span>: <span class="code-number">7</span>, <span class="code-property">y</span>: <span class="code-number">7</span>}];
+        <span class="code-keyword">this</span>.<span class="code-property">applePos</span> <span class="code-operator">=</span> {<span class="code-property">x</span>: <span class="code-number">10</span>, <span class="code-property">y</span>: <span class="code-number">10</span>};
+        <span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">=</span> <span class="code-number">0</span>;
+    }
+
+    <span class="code-method-name">placeNewApple</span>() {
+        <span class="code-comment">// Lógica de posicionar nova maçã...</span>
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Nova maçã posicionada."</span>);
+    }
+
+    <span class="code-method-name">moveSnake</span>() {
+        <span class="code-comment">// Lógica de mover a cobra...</span>
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Cobra movida."</span>);
+    }
+
+    <span class="code-comment">// Função para coletar maçã</span>
+    <span class="code-method-name">collectApple</span>() {
+        <span class="code-comment">// ${codeLineMarkers.scoreBugLine}</span>
+        <span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">+=</span> <span class="code-number">0</span>; <span class="code-comment"></span>
+        <span class="code-keyword">this</span>.<span class="code-method-name">placeNewApple</span>();
+    }
+
+    <span class="code-comment">// ${codeLineMarkers.wallBugMethod}</span>
+    <span class="code-comment">// Função para checar colisão com paredes</span>
+    <span class="code-method-name">checkWallCollision</span>() {
+        <span class="code-keyword">const</span> head <span class="code-operator">=</span> <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span>[<span class="code-number">0</span>];
+        <span class="code-keyword">return</span> head.<span class="code-property">x</span> <span class="code-operator">&lt;</span> <span class="code-number">0</span> <span class="code-operator">||</span> head.<span class="code-property">x</span> <span class="code-operator">&gt;=</span> tileCount <span class="code-operator">||</span> 
+               head.<span class="code-property">y</span> <span class="code-operator">&lt;</span> <span class="code-number">0</span> <span class="code-operator">||</span> head.<span class="code-property">y</span> <span class="code-operator">&gt;=</span> tileCount;
+    }
+    <span class="code-comment">// ... (outras lógicas do jogo)</span>
+}`,
+            stage2: `
+<span class="code-comment">// BUG DE PONTUAÇÃO REPORTADO!</span>
+<span class="code-comment">// O testador (você!) percebeu que a pontuação não aumenta.</span>
+<span class="code-comment">// A linha problemática foi identificada:</span>
+<span class="code-keyword">class</span> <span class="code-class-name">SnakeGame</span> {
+    <span class="code-method-name">constructor</span>() {
+        <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span> <span class="code-operator">=</span> [{<span class="code-property">x</span>: <span class="code-number">7</span>, <span class="code-property">y</span>: <span class="code-number">7</span>}];
+        <span class="code-keyword">this</span>.<span class="code-property">applePos</span> <span class="code-operator">=</span> {<span class="code-property">x</span>: <span class="code-number">10</span>, <span class="code-property">y</span>: <span class="code-number">10</span>};
+        <span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">=</span> <span class="code-number">0</span>;
+    }
+
+    <span class="code-method-name">placeNewApple</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Nova maçã posicionada."</span>);
+    }
+
+    <span class="code-method-name">moveSnake</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Cobra movida."</span>);
+    }
+
+    <span class="code-method-name">collectApple</span>() {
+        <span class="highlight-comment">// ${codeLineMarkers.scoreBugLine} // Linha original comentada para referência</span>
+        <span class="highlight-bug"><span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">+=</span> <span class="code-number">0</span>; <span class="code-comment">// BUG: Pontuação não aumenta!</span></span>
+        <span class="code-keyword">this</span>.<span class="code-method-name">placeNewApple</span>();
+    }
+    
+    <span class="code-comment">// ${codeLineMarkers.wallBugMethod}</span>
+    <span class="code-method-name">checkWallCollision</span>() {
+        <span class="code-keyword">const</span> head <span class="code-operator">=</span> <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span>[<span class="code-number">0</span>];
+        <span class="code-keyword">return</span> head.<span class="code-property">x</span> <span class="code-operator">&lt;</span> <span class="code-number">0</span> <span class="code-operator">||</span> head.<span class="code-property">x</span> <span class="code-operator">&gt;=</span> tileCount <span class="code-operator">||</span> 
+               head.<span class="code-property">y</span> <span class="code-operator">&lt;</span> <span class="code-number">0</span> <span class="code-operator">||</span> head.<span class="code-property">y</span> <span class="code-operator">&gt;=</span> tileCount;
+    }
+    <span class="code-comment">// ...</span>
+}`,
+            stage3: `
+<span class="code-comment">// BUG DE PONTUAÇÃO "RESOLVIDO"... SERÁ?</span>
+<span class="code-comment">// O desenvolvedor corrigiu a pontuação.</span>
+<span class="code-comment">// Mas algo mais pode ter quebrado no processo... (Teste de Regressão!)</span>
+<span class="code-keyword">class</span> <span class="code-class-name">SnakeGame</span> {
+    <span class="code-method-name">constructor</span>() {
+        <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span> <span class="code-operator">=</span> [{<span class="code-property">x</span>: <span class="code-number">7</span>, <span class="code-property">y</span>: <span class="code-number">7</span>}];
+        <span class="code-keyword">this</span>.<span class="code-property">applePos</span> <span class="code-operator">=</span> {<span class="code-property">x</span>: <span class="code-number">10</span>, <span class="code-property">y</span>: <span class="code-number">10</span>};
+        <span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">=</span> <span class="code-number">0</span>;
+    }
+
+    <span class="code-method-name">placeNewApple</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Nova maçã posicionada."</span>);
+    }
+
+    <span class="code-method-name">moveSnake</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Cobra movida."</span>);
+    }
+
+    <span class="code-method-name">collectApple</span>() {
+        <span class="code-comment">// ${codeLineMarkers.scoreBugLine}</span>
+        <span class="highlight-fix"><span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">+=</span> <span class="code-number">10</span>; <span class="code-comment">// FIX: Pontuação agora aumenta!</span></span>
+        <span class="code-keyword">this</span>.<span class="code-method-name">placeNewApple</span>();
+    }
+
+    <span class="code-comment">// ${codeLineMarkers.wallBugMethod}</span>
+    
+    <span class="code-comment">// ... (outras lógicas do jogo)</span>
+}`,
+            stage4: `
+<span class="code-comment">// TESTE DE REGRESSÃO FALHOU! PAREDES IGNORADAS!</span>
+<span class="code-comment">// Você encontrou: a cobra atravessa as paredes!</span>
+<span class="code-comment">// O método 'checkWallCollision' foi removido ou está defeituoso.</span>
+<span class="code-keyword">class</span> <span class="code-class-name">SnakeGame</span> {
+    <span class="code-method-name">constructor</span>() {
+        <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span> <span class="code-operator">=</span> [{<span class="code-property">x</span>: <span class="code-number">7</span>, <span class="code-property">y</span>: <span class="code-number">7</span>}];
+        <span class="code-keyword">this</span>.<span class="code-property">applePos</span> <span class="code-operator">=</span> {<span class="code-property">x</span>: <span class="code-number">10</span>, <span class="code-property">y</span>: <span class="code-number">10</span>};
+        <span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">=</span> <span class="code-number">0</span>;
+    }
+
+    <span class="code-method-name">placeNewApple</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Nova maçã posicionada."</span>);
+    }
+
+    <span class="code-method-name">moveSnake</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Cobra movida."</span>);
+    }
+
+    <span class="code-method-name">collectApple</span>() {
+        <span class="code-comment">// ${codeLineMarkers.scoreBugLine}</span>
+        <span class="highlight-neutral"><span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">+=</span> <span class="code-number">10</span>; <span class="code-comment">// OK: Pontuação funcionando.</span></span>
+        <span class="code-keyword">this</span>.<span class="code-method-name">placeNewApple</span>();
+    }
+
+    <span class="highlight-bug"><span class="code-comment">// ${codeLineMarkers.wallBugMethod}</span></span>
+    <span class="highlight-bug"><span class="code-comment">// ERRO CRÍTICO: O método checkWallCollision() está AUSENTE!</span></span>
+    <span class="highlight-comment">// Um desenvolvedor precisa reimplementar a lógica de colisão com paredes aqui.</span>
+    <span class="highlight-comment">// Exemplo da lógica que deveria existir:</span>
+    <span class="highlight-comment">// checkWallCollision() {</span>
+    <span class="highlight-comment">//     const head = this.snakeBody[0];</span>
+    <span class="highlight-comment">//     return head.x < 0 || head.x >= tileCount || </span>
+    <span class="highlight-comment">//            head.y < 0 || head.y >= tileCount;</span>
+    <span class="highlight-comment">// }</span>
+    <span class="code-comment">// ...</span>
+}`,
+            stage5: `
+<span class="code-comment">// TODOS OS BUGS RESOLVIDOS!</span>
+<span class="code-comment">// O bug de pontuação e o bug de regressão (paredes) foram corrigidos.</span>
+<span class="code-comment">// O jogo agora deve estar estável.</span>
+<span class="code-keyword">class</span> <span class="code-class-name">SnakeGame</span> {
+    <span class="code-method-name">constructor</span>() {
+        <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span> <span class="code-operator">=</span> [{<span class="code-property">x</span>: <span class="code-number">7</span>, <span class="code-property">y</span>: <span class="code-number">7</span>}];
+        <span class="code-keyword">this</span>.<span class="code-property">applePos</span> <span class="code-operator">=</span> {<span class="code-property">x</span>: <span class="code-number">10</span>, <span class="code-property">y</span>: <span class="code-number">10</span>};
+        <span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">=</span> <span class="code-number">0</span>;
+    }
+
+    <span class="code-method-name">placeNewApple</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Nova maçã posicionada."</span>);
+    }
+
+    <span class="code-method-name">moveSnake</span>() {
+        <span class="code-property">console</span>.<span class="code-method-name">log</span>(<span class="code-string">"Cobra movida."</span>);
+    }
+
+    <span class="code-method-name">collectApple</span>() {
+        <span class="code-comment">// ${codeLineMarkers.scoreBugLine}</span>
+        <span class="highlight-neutral"><span class="code-keyword">this</span>.<span class="code-property">score</span> <span class="code-operator">+=</span> <span class="code-number">10</span>; <span class="code-comment">// OK: Pontuação funcionando.</span></span>
+        <span class="code-keyword">this</span>.<span class="code-method-name">placeNewApple</span>();
+    }
+
+    <span class="code-comment">// ${codeLineMarkers.wallBugMethod}</span>
+    <span class="highlight-fix"><span class="code-method-name">checkWallCollision</span>() { <span class="code-comment">// FIX: Lógica de colisão restaurada!</span></span>
+    <span class="highlight-fix">    <span class="code-keyword">const</span> head <span class="code-operator">=</span> <span class="code-keyword">this</span>.<span class="code-property">snakeBody</span>[<span class="code-number">0</span>];</span>
+    <span class="highlight-fix">    <span class="code-keyword">return</span> head.<span class="code-property">x</span> <span class="code-operator">&lt;</span> <span class="code-number">0</span> <span class="code-operator">||</span> head.<span class="code-property">x</span> <span class="code-operator">&gt;=</span> tileCount <span class="code-operator">||</span></span> 
+    <span class="highlight-fix">           head.<span class="code-property">y</span> <span class="code-operator">&lt;</span> <span class="code-number">0</span> <span class="code-operator">||</span> head.<span class="code-property">y</span> <span class="code-operator">&gt;=</span> tileCount;</span>
+    <span class="highlight-fix">}</span>
+    <span class="code-comment">// ...</span>
+}`
+        };
+        
+        function updateCodeDisplay() {
+            let code = "";
+            if (currentSimulationStage === 0 || currentSimulationStage === 1) code = codeSnippets.stage0;
+            else if (currentSimulationStage === 2) code = codeSnippets.stage2;
+            else if (currentSimulationStage === 3) code = codeSnippets.stage3;
+            else if (currentSimulationStage === 4) code = codeSnippets.stage4;
+            else if (currentSimulationStage === 5 || currentSimulationStage === 6) code = codeSnippets.stage5;
+            else code = "// Estado de código desconhecido";
+
+            // Remove internal markers before displaying
+            code = code.replace(new RegExp(`// ${codeLineMarkers.scoreBugLine}`, 'g'), '')
+                       .replace(new RegExp(`// ${codeLineMarkers.wallBugMethod}`, 'g'), '');
+            codeDisplayEl.innerHTML = code.trim(); // Use innerHTML as snippets now contain HTML spans
+        }
+
+        function updateGameControls() {
+            gameControlsEl.innerHTML = ''; 
+            let buttons = [];
+
+            if (!gameRunning && gameAwaitingFirstMove && 
+                (currentSimulationStage === 1 || currentSimulationStage === 3 || currentSimulationStage === 5)) {
+                 buttons.push({ text: `Jogar Etapa ${currentSimulationStage}`, action: () => prepareAndAwaitFirstMove(currentSimulationStage), color: "bg-cyan-500 hover:bg-cyan-600" });
+            }
+
+
+            switch(currentSimulationStage) {
+                case 0:
+                    buttons.push({ text: "Iniciar Teste do Jogo", action: () => setupStage(1), color: "bg-green-500 hover:bg-green-600" });
+                    break;
+                case 1: 
+                    buttons.push({ text: "Reportar Bug", action: () => setupStage(2), color: "bg-red-500 hover:bg-red-600" });
+                    break;
+                case 2: 
+                    buttons.push({ text: "Resolver Bug de Pontuação", action: () => setupStage(3), color: "bg-blue-500 hover:bg-blue-600" });
+                    break;
+                case 3: 
+                    buttons.push({ text: "Reportar Problema (Teste de Regressão Falhou!)", action: () => setupStage(4), color: "bg-red-500 hover:bg-red-600" });
+                    break;
+                case 4: 
+                    buttons.push({ text: "Resolver Bug de Regressão", action: () => setupStage(5), color: "bg-blue-500 hover:bg-blue-600" });
+                    break;
+                case 5: 
+                    buttons.push({ text: "Concluir Simulação", action: () => setupStage(6), color: "bg-purple-500 hover:bg-purple-600" });
+                    break;
+                case 6: 
+                    buttons.push({ text: "Reiniciar Simulação Completa", action: () => setupStage(0), color: "bg-teal-500 hover:bg-teal-600" });
+                    break;
+            }
+
+            buttons.forEach(btnInfo => {
+                const button = document.createElement('button');
+                button.textContent = btnInfo.text;
+                button.className = `action-button text-white ${btnInfo.color} block w-full md:w-auto md:inline-block mx-auto`;
+                button.onclick = btnInfo.action;
+                gameControlsEl.appendChild(button);
+            });
+        }
+        
+        function resetGameVariables() {
+            snake = {
+                body: [{ x: Math.floor(tileCount / 2), y: Math.floor(tileCount / 2) }],
+                dx: 0, 
+                dy: 0
+            };
+            placeApple();
+            score = 0;
+            scoreDisplay.textContent = score;
+            gameSpeed = 180; 
+        }
+        
+        function prepareAndAwaitFirstMove(stage) {
+            currentSimulationStage = stage; 
+            stopGameLoopAndAwaitRestart(); 
+            resetGameVariables();
+            gameAwaitingFirstMove = true;
+            gameRunning = false; 
+            updateCodeDisplay(); 
+            updateGameControls(); 
+            drawGame(); 
+            canvas.focus();
+            
+            let status = "", codeDesc = "";
+             switch (stage) {
+                case 1:
+                    status = "ETAPA 1: Teste o jogo. Parece que há um bug na pontuação...";
+                    codeDesc = "Bug de Pontuação: A função 'collectApple' não está somando pontos.";
+                    break;
+                case 3:
+                    status = "ETAPA 3: Pontuação 'corrigida'. Teste novamente! Algo mais quebrou?";
+                    codeDesc = "Bug de Regressão: O método 'checkWallCollision' foi removido/alterado. A cobra atravessará paredes!";
+                    break;
+                case 5:
+                    status = "ETAPA 5: TODOS OS BUGS CORRIGIDOS! Teste a versão final.";
+                    codeDesc = "Ambos os bugs foram corrigidos. O jogo deve estar perfeito!";
+                    break;
+            }
+            simulationStatusTextEl.textContent = status;
+            codeStageDescriptionEl.textContent = codeDesc;
+        }
+
+
+        function startGameLoopInternal() {
+            if (gameRunning) return; 
+            gameRunning = true;
+            gameAwaitingFirstMove = false;
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, gameSpeed);
+            updateGameControls(); 
+        }
+
+        function stopGameLoopAndAwaitRestart() { 
+            gameRunning = false;
+            if (gameInterval) clearInterval(gameInterval);
+            gameAwaitingFirstMove = true; 
+            updateGameControls(); 
+            drawGame(); 
+        }
+        
+        function placeApple() {
+            apple = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+            if (snake && snake.body) { 
+                for (let segment of snake.body) {
+                    if (segment.x === apple.x && segment.y === apple.y) {
+                        placeApple(); return;
+                    }
+                }
+            }
+        }
+
+        function drawGame() {
+            if (!snake || !snake.body) {
+                ctx.fillStyle = '#1e1e1e'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#d4d4d4';
+                ctx.font = '16px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle'; 
+                if (currentSimulationStage === 0 ) { 
+                     ctx.fillText('Carregando jogo...', canvas.width / 2, canvas.height / 2);
+                }
+                return; 
+            }
+
+            ctx.fillStyle = '#1e1e1e'; // Fundo do canvas igual ao do código
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#4ec9b0'; // Cor da cobra (similar a class name)
+            snake.body.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
+            });
+
+            if (apple) {
+                ctx.fillStyle = '#ce9178'; // Cor da maçã (similar a string)
+                ctx.fillRect(apple.x * gridSize, apple.y * gridSize, gridSize - 1, gridSize - 1);
+            }
+
+
+            if (gameAwaitingFirstMove && (currentSimulationStage === 1 || currentSimulationStage === 3 || currentSimulationStage === 5)) {
+                 ctx.fillStyle = 'rgba(30,30,30,0.7)'; // Overlay mais escuro
+                 ctx.fillRect(0,0, canvas.width, canvas.height);
+                 ctx.fillStyle = '#d4d4d4';
+                 ctx.textAlign = 'center';
+                 ctx.textBaseline = 'middle';
+                 
+                 if (snake.body.length === 1 && snake.body[0].x === Math.floor(tileCount / 2) && snake.body[0].y === Math.floor(tileCount / 2) && snake.dx === 0 && snake.dy === 0) {
+                    ctx.font = '18px Inter';
+                    ctx.fillText('Use as setas para iniciar!', canvas.width / 2, canvas.height / 2);
+                 } else { 
+                     ctx.font = '24px Inter';
+                     ctx.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 30);
+                     ctx.font = '16px Inter';
+                     ctx.fillText('Clique em "Jogar Etapa '+ currentSimulationStage +'" para tentar de novo', canvas.width / 2, canvas.height / 2);
+                     ctx.fillText('ou avance usando os botões.', canvas.width / 2, canvas.height / 2 + 25);
+                 }
+            }
+        }
+        
+        function updateSnake() {
+            if (!gameRunning) return; 
+
+            const head = { x: snake.body[0].x + snake.dx, y: snake.body[0].y + snake.dy };
+
+            let wallCollisionOccurred = false;
+            if (currentSimulationStage !== 3) { 
+                if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                    wallCollisionOccurred = true;
+                }
+            } else { // Na Etapa 3, a cobra atravessa as paredes (simulando método checkWallCollision ausente)
+                if (head.x < 0) head.x = tileCount - 1;
+                else if (head.x >= tileCount) head.x = 0;
+                if (head.y < 0) head.y = tileCount - 1;
+                else if (head.y >= tileCount) head.y = 0;
+            }
+
+
+            if (wallCollisionOccurred) {
+                stopGameLoopAndAwaitRestart();
+                return;
+            }
+
+            for (let i = 1; i < snake.body.length; i++) {
+                if (head.x === snake.body[i].x && head.y === snake.body[i].y) {
+                    stopGameLoopAndAwaitRestart();
+                    return;
+                }
+            }
+
+            snake.body.unshift(head);
+
+            if (apple && head.x === apple.x && head.y === apple.y) { 
+                if (currentSimulationStage !== 1) { // Bug de pontuação na etapa 1
+                    score += 10;
+                }
+                scoreDisplay.textContent = score;
+                placeApple();
+            } else {
+                snake.body.pop();
+            }
+        }
+
+        function gameLoop() {
+            updateSnake();
+            drawGame();
+        }
+        
+        function setSnakeDirection(key) {
+            if (key === 'ArrowUp' && snake.dy === 0) { snake.dx = 0; snake.dy = -1; }
+            else if (key === 'ArrowDown' && snake.dy === 0) { snake.dx = 0; snake.dy = 1; }
+            else if (key === 'ArrowLeft' && snake.dx === 0) { snake.dx = -1; snake.dy = 0; }
+            else if (key === 'ArrowRight' && snake.dx === 0) { snake.dx = 1; snake.dy = 0; }
+        }
+
+
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                if (document.activeElement === canvas || gameRunning || gameAwaitingFirstMove) {
+                    e.preventDefault();
+                }
+
+                if (gameAwaitingFirstMove && (currentSimulationStage === 1 || currentSimulationStage === 3 || currentSimulationStage === 5)) {
+                    setSnakeDirection(e.key);
+                    if ((snake.dx !== 0 || snake.dy !== 0) && !gameRunning) { 
+                       startGameLoopInternal();
+                    }
+                } else if (gameRunning) {
+                    setSnakeDirection(e.key);
+                }
+            }
+        });
+        
+        function setupStage(stage) {
+            currentSimulationStage = stage;
+            
+            if (!(stage === 1 || stage === 3 || stage === 5)) {
+                resetGameVariables(); 
+                stopGameLoopAndAwaitRestart(); 
+            }
+            
+            updateCodeDisplay();
+
+            let status = "";
+            let codeDesc = "";
+            gameAwaitingFirstMove = false; 
+
+            switch (stage) {
+                case 0:
+                    status = "Bem-vindo! Clique em 'Iniciar Teste' para encontrar os bugs.";
+                    codeDesc = "Código inicial do jogo. Observe atentamente!";
+                    break;
+                case 1: 
+                case 3: 
+                case 5: 
+                    prepareAndAwaitFirstMove(stage); 
+                    return; 
+                case 2:
+                    status = "ETAPA 2: Bug de Pontuação REPORTADO! Veja o código destacado.";
+                    codeDesc = "A linha com o bug de pontuação foi identificada. O que fazer agora?";
+                    break;
+                case 4:
+                    status = "ETAPA 4: Teste de Regressão FALHOU! Bug das paredes reportado.";
+                    codeDesc = "O bug de regressão (paredes) foi identificado. Hora de corrigir de vez!";
+                    break;
+                case 6:
+                    status = "SIMULAÇÃO CONCLUÍDA! Você acompanhou o ciclo de teste e correção.";
+                    codeDesc = "Parabéns por concluir a simulação de Teste de Regressão!";
+                    break;
+            }
+            simulationStatusTextEl.textContent = status;
+            codeStageDescriptionEl.textContent = codeDesc;
+            updateGameControls(); 
+            drawGame(); 
+        }
+
+        resetGameVariables(); 
+        setupStage(0); 
+
+        let answeredQuiz = { quiz1: false, quiz2: false };
+        function checkAnswer(button, quizId) {
+            if (answeredQuiz[quizId]) return; 
+            const options = document.getElementById(`${quizId}_options`).getElementsByTagName('button');
+            const feedbackEl = document.getElementById(`${quizId}_feedback`);
+            const isCorrect = button.dataset.correct === 'true';
+            for (let opt of options) {
+                opt.disabled = true; 
+                opt.classList.remove('hover:bg-slate-500');
+                if (opt.dataset.correct === 'true') {
+                    opt.classList.add('bg-green-600', 'text-white');
+                } else {
+                    opt.classList.add('bg-red-600', 'text-white');
+                }
+            }
+            button.classList.add(isCorrect ? 'ring-2' : 'ring-2', isCorrect ? 'ring-green-400' : 'ring-red-400');
+            if (isCorrect) {
+                feedbackEl.textContent = "Correto! 🎉 Você está no caminho certo!";
+                feedbackEl.className = "mt-3 text-sm text-green-400";
+            } else {
+                feedbackEl.textContent = "Ops! Não foi dessa vez. A resposta correta está destacada em verde.";
+                feedbackEl.className = "mt-3 text-sm text-red-400";
+            }
+            answeredQuiz[quizId] = true;
+        }
+    </script>
+</body>
+</html> 
